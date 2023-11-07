@@ -1,0 +1,58 @@
+From 18824d10eaa46b39d42ae2b437fe760a2be25a7b Mon Sep 17 00:00:00 2001
+From: Antonio Sanchez <cantonios@google.com>
+Date: Fri, 22 Oct 2021 08:52:16 -0700
+Subject: [PATCH] Fix ZVector build.
+
+Cross-compiled via `s390x-linux-gnu-g++`, run via qemu.  This allows the
+packetmath tests to pass.
+
+
+(cherry picked from commit 40bbe8a4d0eb3ec2bfd472fa30cac19e6e743b46)
+---
+ Eigen/src/Core/arch/ZVector/Complex.h    | 14 ++++++++++++--
+ Eigen/src/Core/arch/ZVector/PacketMath.h |  4 ++--
+ 2 files changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/Eigen/src/Core/arch/ZVector/Complex.h b/Eigen/src/Core/arch/ZVector/Complex.h
+index 0b9b33d99d..e0acedefbd 100644
+--- a/Eigen/src/Core/arch/ZVector/Complex.h
++++ b/Eigen/src/Core/arch/ZVector/Complex.h
+@@ -91,8 +91,18 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
+   };
+ };
+ 
+-template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float>  type; enum {size=2, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false}; typedef Packet2cf half; };
+-template<> struct unpacket_traits<Packet1cd> { typedef std::complex<double> type; enum {size=1, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false}; typedef Packet1cd half; };
++template<> struct unpacket_traits<Packet2cf> {
++  typedef std::complex<float>  type;
++  enum {size=2, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false};
++  typedef Packet2cf half;
++  typedef Packet4f as_real;
++};
++template<> struct unpacket_traits<Packet1cd> {
++  typedef std::complex<double> type;
++  enum {size=1, alignment=Aligned16, vectorizable=true, masked_load_available=false, masked_store_available=false};
++  typedef Packet1cd half;
++  typedef Packet2d as_real;
++};
+ 
+ /* Forward declaration */
+ EIGEN_STRONG_INLINE void ptranspose(PacketBlock<Packet2cf,2>& kernel);
+diff --git a/Eigen/src/Core/arch/ZVector/PacketMath.h b/Eigen/src/Core/arch/ZVector/PacketMath.h
+index 1f55a90a5c..208e4b167c 100755
+--- a/Eigen/src/Core/arch/ZVector/PacketMath.h
++++ b/Eigen/src/Core/arch/ZVector/PacketMath.h
+@@ -91,8 +91,8 @@ static _EIGEN_DECLARE_CONST_FAST_Packet2l(ZERO, 0);
+ static _EIGEN_DECLARE_CONST_FAST_Packet2l(ONE, 1);
+ 
+ static Packet2d p2d_ONE = { 1.0, 1.0 };
+-static Packet2d p2d_ZERO_ = { numext::bit_cast<double>0x8000000000000000ull),
+-                              numext::bit_cast<double>0x8000000000000000ull) };
++static Packet2d p2d_ZERO_ = { numext::bit_cast<double>(0x8000000000000000ull),
++                              numext::bit_cast<double>(0x8000000000000000ull) };
+ 
+ #if !defined(__ARCH__) || (defined(__ARCH__) && __ARCH__ >= 12)
+ #define _EIGEN_DECLARE_CONST_FAST_Packet4f(NAME,X) \
+-- 
+GitLab
+

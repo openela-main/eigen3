@@ -27,12 +27,15 @@
 
 Name:           eigen3
 Version:        3.4.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A lightweight C++ template library for vector and matrix math
 
 License:        ASL 2.0 and MPLv2.0 and LGPLv2+ and BSD and Minpack
 URL:            http://eigen.tuxfamily.org/index.php?title=Main_Page
 Source0:        https://gitlab.com/libeigen/eigen/-/archive/%{version}/eigen-%{version}.tar.bz2
+# Upstream patches requested by a partner or customer:
+Patch0:         0001-fix_zvector_build.patch
+Patch1:         0002-zvector_move_alignas_qualifier_to_come_first.patch
 
 BuildRequires:  %{blaslib}-devel
 BuildRequires:  fftw-devel
@@ -119,6 +122,10 @@ rm -f %{_vpath_builddir}/doc/html/unsupported/installdox
 
 
 %changelog
+* Mon May 15 2023 Jiri Kucera <jkucera@redhat.com> - 3.4.0-2
+- Backport upstream patches
+  Resolves: #2137486
+
 * Wed Feb 16 2022 Jiri Kucera <jkucera@redhat.com> - 3.4.0-1
 - Update to 3.4.0
   Resolves: #2032423
